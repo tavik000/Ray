@@ -38,23 +38,15 @@ class ARayCharacter : public ACharacter
 
 public:
 	ARayCharacter();
-	
 
 protected:
-
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
-			
-
 protected:
-
 	virtual void NotifyControllerChanged() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:
 };
-
