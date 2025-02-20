@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Ray/GameplayElement/LaserBase.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -69,6 +70,8 @@ void ARayCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARayCharacter::Move);
+
+		EnhancedInputComponent->BindAction(SendRayTopAction, ETriggerEvent::Started, this, &ARayCharacter::SendRayTop);
 	}
 	else
 	{
@@ -95,3 +98,24 @@ void ARayCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
+void ARayCharacter::SendRayTop(const FInputActionValue& Value)
+{
+
+	// TODO: check Authority
+
+	if (LaserClass == nullptr)
+	{
+		return;
+	}
+
+	UWorld* const World = GetWorld();
+	if (IsValid(World))
+	{
+		//Set Spawn Collision Handling Override
+		FActorSpawnParameters ActorSpawnParams;
+		ActorSpawnParams.SpawnCollisionHandlingOverride =
+			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		ALaserBase* SpawnProjectile = World->SpawnActor<ALaserBase>(
+			LaserClass, GetActorLocation(), GetActorRotation(), ActorSpawnParams);
+	}
+}

@@ -20,6 +20,19 @@ class ARayCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+public:
+	ARayCharacter();
+
+protected:
+	/** Called for movement input */
+	void Move(const FInputActionValue& Value);
+
+	void SendRayTop(const FInputActionValue& Value);
+
+	virtual void NotifyControllerChanged() override;
+
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
@@ -32,21 +45,10 @@ class ARayCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
 
-	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LookAction;
+	UInputAction* SendRayTopAction;
 
-public:
-	ARayCharacter();
-
-protected:
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
-
-protected:
-	virtual void NotifyControllerChanged() override;
-
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-public:
+	/** Projectile class to spawn */
+	UPROPERTY(EditDefaultsOnly, Category=Laser)
+	TSubclassOf<class ALaserBase> LaserClass;
 };
