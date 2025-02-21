@@ -21,7 +21,7 @@ ARayCharacter::ARayCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -39,7 +39,6 @@ ARayCharacter::ARayCharacter()
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -52,7 +51,8 @@ void ARayCharacter::NotifyControllerChanged()
 	// Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<
+			UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
@@ -62,8 +62,8 @@ void ARayCharacter::NotifyControllerChanged()
 void ARayCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
 		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -71,11 +71,30 @@ void ARayCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARayCharacter::Move);
 
-		EnhancedInputComponent->BindAction(SendRayTopAction, ETriggerEvent::Started, this, &ARayCharacter::SendRayTop);
+		EnhancedInputComponent->BindAction(SendRayTopAction, ETriggerEvent::Started, this,
+		                                   &ARayCharacter::SendLaserTop);
+
+		EnhancedInputComponent->BindAction(SendRayCenterAction, ETriggerEvent::Started, this,
+		                                   &ARayCharacter::SendLaserCenter);
+
+		EnhancedInputComponent->BindAction(SendRayBottomAction, ETriggerEvent::Started, this,
+		                                   &ARayCharacter::SendLaserBottom);
+
+		EnhancedInputComponent->BindAction(SendRayLeftAction, ETriggerEvent::Started, this,
+		                                   &ARayCharacter::SendLaserLeft);
+
+		EnhancedInputComponent->BindAction(SendRayMiddleAction, ETriggerEvent::Started, this,
+		                                   &ARayCharacter::SendLaserMiddle);
+
+		EnhancedInputComponent->BindAction(SendRayRightAction, ETriggerEvent::Started, this,
+		                                   &ARayCharacter::SendLaserRight);
 	}
 	else
 	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+		UE_LOG(LogTemplateCharacter, Error,
+		       TEXT(
+			       "'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."
+		       ), *GetNameSafe(this));
 	}
 }
 
@@ -89,7 +108,7 @@ void ARayCharacter::Move(const FInputActionValue& Value)
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
-	
+
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -98,11 +117,39 @@ void ARayCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
-void ARayCharacter::SendRayTop(const FInputActionValue& Value)
+void ARayCharacter::SendLaserTop(const FInputActionValue& Value)
 {
+	SpawnLaser(TopLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
+}
 
+void ARayCharacter::SendLaserCenter(const FInputActionValue& Value)
+{
+	SpawnLaser(CenterLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
+}
+
+void ARayCharacter::SendLaserBottom(const FInputActionValue& Value)
+{
+	SpawnLaser(BottomLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
+}
+
+void ARayCharacter::SendLaserLeft(const FInputActionValue& Value)
+{
+	SpawnLaser(LeftLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
+}
+
+void ARayCharacter::SendLaserMiddle(const FInputActionValue& Value)
+{
+	SpawnLaser(CenterLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
+}
+
+void ARayCharacter::SendLaserRight(const FInputActionValue& Value)
+{
+	SpawnLaser(RightLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
+}
+
+void ARayCharacter::SpawnLaser(FVector SpawnLocation, FRotator SpawnRotation)
+{
 	// TODO: check Authority
-
 	if (LaserClass == nullptr)
 	{
 		return;
@@ -116,6 +163,6 @@ void ARayCharacter::SendRayTop(const FInputActionValue& Value)
 		ActorSpawnParams.SpawnCollisionHandlingOverride =
 			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 		ALaserBase* SpawnProjectile = World->SpawnActor<ALaserBase>(
-			LaserClass, GetActorLocation(), GetActorRotation(), ActorSpawnParams);
+			LaserClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 	}
 }
