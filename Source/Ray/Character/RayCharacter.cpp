@@ -125,37 +125,42 @@ void ARayCharacter::Move(const FInputActionValue& Value)
 
 void ARayCharacter::SendLaserTop(const FInputActionValue& Value)
 {
-	SpawnLaser(TopLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
+	ServerSpawnLaser(TopLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
 }
 
 void ARayCharacter::SendLaserCenter(const FInputActionValue& Value)
 {
-	SpawnLaser(CenterLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
+	ServerSpawnLaser(CenterLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
 }
 
 void ARayCharacter::SendLaserBottom(const FInputActionValue& Value)
 {
-	SpawnLaser(BottomLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
+	ServerSpawnLaser(BottomLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
 }
 
 void ARayCharacter::SendLaserLeft(const FInputActionValue& Value)
 {
-	SpawnLaser(LeftLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
+	ServerSpawnLaser(LeftLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
 }
 
 void ARayCharacter::SendLaserMiddle(const FInputActionValue& Value)
 {
-	SpawnLaser(CenterLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
+	ServerSpawnLaser(CenterLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
 }
 
 void ARayCharacter::SendLaserRight(const FInputActionValue& Value)
 {
-	SpawnLaser(RightLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
+	ServerSpawnLaser(RightLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
 }
 
-void ARayCharacter::SpawnLaser(FVector SpawnLocation, FRotator SpawnRotation)
+void ARayCharacter::ServerSpawnLaser_Implementation(FVector SpawnLocation, FRotator SpawnRotation)
 {
 	// TODO: check Authority
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
 	if (LaserClass == nullptr)
 	{
 		return;

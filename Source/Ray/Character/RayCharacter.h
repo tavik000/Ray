@@ -39,7 +39,8 @@ protected:
 	void SendLaserMiddle(const FInputActionValue& Value);
 	void SendLaserRight(const FInputActionValue& Value);
 
-	void SpawnLaser(FVector SpawnLocation, FRotator SpawnRotation);
+	UFUNCTION(Server, Reliable)
+	void ServerSpawnLaser(FVector SpawnLocation, FRotator SpawnRotation);
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
