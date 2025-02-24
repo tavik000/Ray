@@ -3,28 +3,66 @@
 
 #include "LaserBase.h"
 
+#include "Ray/Character/RayCharacter.h"
 
-// Sets default values
+
 ALaserBase::ALaserBase()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 	bReplicates = true;
 	AActor::SetReplicateMovement(true);
-	
+	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+	SetRootComponent(SceneComponent);
+	LaserEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LaserEffect"));
+	LaserEffect->SetupAttachment(SceneComponent);
+	LaserCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
+	LaserCollision->SetupAttachment(LaserEffect);
+	LaserCollision->SetCollisionProfileName(TEXT("OverlapAll"));
+	LaserCollision->OnComponentBeginOverlap.AddDynamic(this, &ALaserBase::OnBoxComponentBeginOverlap);
 }
 
-// Called when the game starts or when spawned
 void ALaserBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
-// Called every frame
 void ALaserBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (HasAuthority())
+	{
+		const FVector NewLocation = GetActorLocation() + MoveDirection * MoveSpeed * DeltaTime;
+		SetActorLocation(NewLocation);
+	}
+}
+
+void ALaserBase::MulticastInit_Implementation(FVector4 Color, FVector NewMoveDirection, float NewMoveSpeed)
+{
+	if (!IsValid(LaserEffect))
+	{
+		return;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Set Color"));
+
+	LaserEffect->SetVariableVec4("Color", Color);
+	MoveDirection = NewMoveDirection;
+	MoveSpeed = NewMoveSpeed;
+}
+
+void ALaserBase::OnBoxComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                            UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+                                            const FHitResult& SweepResult)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	ARayCharacter* Character = Cast<ARayCharacter>(OtherActor);
+	if (!IsValid(Character))
+	{
+		return;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Character Overlap"));
 }
 

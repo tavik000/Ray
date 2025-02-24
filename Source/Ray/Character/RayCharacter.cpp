@@ -3,6 +3,7 @@
 #include "RayCharacter.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
+#include "Ray/Core/RayPlayerState.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -10,6 +11,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Net/UnrealNetwork.h"
+#include "Ray/Core/RayPlayerController.h"
 #include "Ray/GameplayElement/LaserBase.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -125,42 +128,74 @@ void ARayCharacter::Move(const FInputActionValue& Value)
 
 void ARayCharacter::SendLaserTop(const FInputActionValue& Value)
 {
-	ServerSpawnLaser(TopLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
+	ServerSpawnLaser(TopLaserSpawnLocations[GetPlayerIndex()], FRotator(0, 90, 0));
 }
 
 void ARayCharacter::SendLaserCenter(const FInputActionValue& Value)
 {
-	ServerSpawnLaser(CenterLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
+	ServerSpawnLaser(CenterLaserSpawnLocations[GetPlayerIndex()], FRotator(0, 90, 0));
 }
 
 void ARayCharacter::SendLaserBottom(const FInputActionValue& Value)
 {
-	ServerSpawnLaser(BottomLaserSpawnLocations[PlayerIndex], FRotator(0, 90, 0));
+	ServerSpawnLaser(BottomLaserSpawnLocations[GetPlayerIndex()], FRotator(0, 90, 0));
 }
 
 void ARayCharacter::SendLaserLeft(const FInputActionValue& Value)
 {
-	ServerSpawnLaser(LeftLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
+	ServerSpawnLaser(LeftLaserSpawnLocations[GetPlayerIndex()], FRotator(90, 0, 0));
 }
 
 void ARayCharacter::SendLaserMiddle(const FInputActionValue& Value)
 {
-	ServerSpawnLaser(CenterLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
+	ServerSpawnLaser(CenterLaserSpawnLocations[GetPlayerIndex()], FRotator(90, 0, 0));
 }
 
 void ARayCharacter::SendLaserRight(const FInputActionValue& Value)
 {
-	ServerSpawnLaser(RightLaserSpawnLocations[PlayerIndex], FRotator(90, 0, 0));
+	ServerSpawnLaser(RightLaserSpawnLocations[GetPlayerIndex()], FRotator(90, 0, 0));
+}
+
+void ARayCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	if (ARayPlayerController* PC = Cast<ARayPlayerController>(GetController()))
+	{
+		LocalPlayerState = PC->GetPlayerState<ARayPlayerState>();
+		if (IsValid(LocalPlayerState))
+		{
+			UE_LOG(LogTemp, Log, TEXT("Player Index: %d"), LocalPlayerState->PlayerIndex);
+		}
+	}
+}
+
+void ARayCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+}
+
+int32 ARayCharacter::GetPlayerIndex()
+{
+	if (!IsValid(LocalPlayerState))
+	{
+		LocalPlayerState = Cast<ARayPlayerState>(GetPlayerState());
+	}
+
+	return LocalPlayerState->GetPlayerIndex();
+}
+
+void ARayCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 }
 
 void ARayCharacter::ServerSpawnLaser_Implementation(FVector SpawnLocation, FRotator SpawnRotation)
 {
-	// TODO: check Authority
 	if (!HasAuthority())
 	{
 		return;
 	}
-	
+
 	if (LaserClass == nullptr)
 	{
 		return;
@@ -173,7 +208,13 @@ void ARayCharacter::ServerSpawnLaser_Implementation(FVector SpawnLocation, FRota
 		FActorSpawnParameters ActorSpawnParams;
 		ActorSpawnParams.SpawnCollisionHandlingOverride =
 			ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-		ALaserBase* SpawnProjectile = World->SpawnActor<ALaserBase>(
+		ALaserBase* SpawnLaser = World->SpawnActor<ALaserBase>(
 			LaserClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+		if (IsValid(SpawnLaser))
+		{
+			SpawnLaser->SetOwner(this);
+			SpawnLaser->MulticastInit(CharacterColors[GetPlayerIndex()], LaserMoveDirection[GetPlayerIndex()],
+			                          LaserMoveSpeed);
+		}
 	}
 }

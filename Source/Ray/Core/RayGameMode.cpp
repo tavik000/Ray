@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "RayGameMode.h"
-#include "./Character/RayCharacter.h"
+#include "./../Character/RayCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 ARayGameMode::ARayGameMode()

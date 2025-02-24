@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Ray/Core/RayPlayerState.h"
 #include "RayCharacter.generated.h"
 
 class USpringArmComponent;
@@ -27,11 +28,10 @@ protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
-
 	virtual void NotifyControllerChanged() override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 	void SendLaserTop(const FInputActionValue& Value);
 	void SendLaserCenter(const FInputActionValue& Value);
 	void SendLaserBottom(const FInputActionValue& Value);
@@ -56,10 +56,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SendRayTopAction;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SendRayCenterAction;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SendRayBottomAction;
 
@@ -95,7 +95,25 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Laser)
 	TArray<FVector> RightLaserSpawnLocations;
 
-	UPROPERTY(EditAnywhere)
-	int32 PlayerIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Character)
+	TArray<FLinearColor> CharacterColors;
 	
+	UPROPERTY(EditDefaultsOnly, Category = Laser)
+	TArray<FVector> LaserMoveDirection;
+
+	UPROPERTY(EditDefaultsOnly, Category = Laser)
+	float LaserMoveSpeed = 3.f;
+
+public:
+	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetPlayerIndex();
+
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+private:
+	TObjectPtr<ARayPlayerState> LocalPlayerState;
 };
