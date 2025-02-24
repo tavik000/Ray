@@ -9,6 +9,9 @@ public class Ray : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[]
-			{ "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "OnlineSubsystem", "OnlineSubsystemEOS", "UMG", "Niagara" });
+		{
+			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "OnlineSubsystem", "OnlineSubsystemSteam",
+			"OnlineSubsystemEOS", "OnlineSubsystemUtils", "UMG", "Niagara"
+		});
 	}
 }
